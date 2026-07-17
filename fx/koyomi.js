@@ -105,18 +105,17 @@
     return s;
   }
 
-  /* ---- 言霊五十音暦 ----
-   * 古典五十音図(ゐ・ゑ含む50音)を1日1音で巡らせる50日周期。
-   * ※標準的定義が存在しないため、基準日(既定: 2000-02-04 立春)と
-   *   周期は設定タブから変更できる。行(10分類)と段(5分類)を返す。 */
-  const KANA50 = ('あいうえお' + 'かきくけこ' + 'さしすせそ' + 'たちつてと' + 'なにぬねの' +
-    'はひふへほ' + 'まみむめも' + 'やいゆえよ' + 'らりるれろ' + 'わゐうゑを').split('');
-  const GYO = ['あ行', 'か行', 'さ行', 'た行', 'な行', 'は行', 'ま行', 'や行', 'ら行', 'わ行'];
-  const DAN = ['あ段', 'い段', 'う段', 'え段', 'お段'];
+  /* ---- 言霊五十音暦 (稲荷古伝・五十連) ----
+   * kotodama.js に収録した「言霊一言法則」の記載順(ホに起こりマに終わる
+   * 五十連)を、1日1音で巡らせる50日周期として実装。
+   * 基準日(既定: 2000-02-04 立春 = ホ)は設定タブから変更できる。
+   * ※日と音の正式な対応規則(五十音暦)が別に定まっている場合は、
+   *   基準日をその規則に合わせて調整すること。 */
   const GOJUON_ANCHOR = jdn(2000, 2, 4);
   function gojuon(j, anchorJ) {
     const idx = mod(j - (anchorJ == null ? GOJUON_ANCHOR : anchorJ), 50);
-    return { kana: KANA50[idx], gyo: GYO[Math.floor(idx / 5)], dan: DAN[idx % 5], idx };
+    const s = window.Kotodama.SOUNDS[idx];
+    return { kana: s.label, rei: s.rei, kasui50: s.kasui, def: s.def, idx };
   }
 
   /* ---- 惑星位置 (簡易ケプラー軌道) と水星逆行 ---- */
@@ -188,7 +187,7 @@
       shuku: shuku(j, opts.ayanamsa),
       ganzhi: gz.name, element: gz.element, kasui: gz.kasui, yinyang: gz.yinyang,
       numerology: numerology(y, m, d),
-      kana: go.kana, gyo: go.gyo, dan: go.dan,
+      kana: go.kana, rei: go.rei, kasui50: go.kasui50,
       retro: mercuryRetro(j),
       gotobi: gotobi(y, m, d),
       monthPos: monthPos(y, m, d)
@@ -202,7 +201,7 @@
     moonLongitude, shuku, SHUKU27,
     ganzhi, STEMS, BRANCHES,
     numerology,
-    gojuon, KANA50, GYO, DAN, GOJUON_ANCHOR,
+    gojuon, GOJUON_ANCHOR,
     mercuryGeoLongitude, mercuryRetro,
     gotobi, monthPos, record
   };

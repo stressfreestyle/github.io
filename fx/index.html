@@ -25,6 +25,7 @@
       <button class="tab-btn" data-tab="tab-verify">暦検証</button>
       <button class="tab-btn" data-tab="tab-similar">類似局面</button>
       <button class="tab-btn" data-tab="tab-timeline">年表</button>
+      <button class="tab-btn" data-tab="tab-kotodama">言霊法則</button>
       <button class="tab-btn" data-tab="tab-docs">解説・設定</button>
     </nav>
 
@@ -72,7 +73,12 @@
       <div id="timeline-content"></div>
     </section>
 
-    <!-- タブ5: 解説・設定 -->
+    <!-- タブ5: 言霊法則 -->
+    <section id="tab-kotodama" class="tab-panel">
+      <div id="kotodama-content"></div>
+    </section>
+
+    <!-- タブ6: 解説・設定 -->
     <section id="tab-docs" class="tab-panel docs">
       <div class="warn">
         <b>免責事項</b> — 本システムは過去データと暦の相関を<b>検証</b>するための研究・教育用ツールです。
@@ -97,8 +103,10 @@
         <li><b>二十七宿(宿曜)</b> — 月の黄経からアヤナムシャ(歳差差、既定24°)を引いて13°20′で区分する天文学的定法。
           旧暦の日付に宿を割り当てる伝統的な流派とはずれる場合があります。下の設定で調整できます。</li>
         <li><b>火水の法則</b> — 日の十干の五行で判定(火=丙・丁の日、水=壬・癸の日)。日干支は1949-10-01=甲子を基準とした厳密計算。</li>
-        <li><b>言霊五十音暦</b> — 標準的な定義が存在しないため、古典五十音図50音を1日1音で巡らせる50日周期として実装。
-          基準日(既定 2000-02-04 立春)は下で変更できます。お使いの流派の定義に合わせて調整してください。</li>
+        <li><b>言霊五十音暦(五十連)</b> — 「言霊一言法則」(稲荷古伝)の記載順、すなわちホに起こりマに終わる五十連を、
+          1日1音で巡らせる50日周期として実装。各音の靈の分類(正火・水火・濁水など)を検証カテゴリに使用。
+          定義の全文は「言霊法則」タブに原文のまま収録。基準日(既定 2000-02-04 立春=ホ)は下で変更できます。
+          日と音の正式な対応規則が別に定まっている場合は基準日を合わせてください。</li>
         <li><b>水星逆行</b> — ケプラー軌道要素からの計算。留の日は実際と±1日程度ずれることがあります。</li>
         <li><b>一目均衡表の時間論</b> — 直近スイング(前後5本の極値)を1日目として基本数値 9,17,26,33,42,52,65,76 を投影。</li>
       </ul>
@@ -116,7 +124,7 @@
         <input type="number" id="set-ayanamsa" step="0.1" min="0" max="360">
       </div>
       <div class="settings-row">
-        <label>五十音暦の基準日</label>
+        <label>五十連暦の基準日(=ホの日)</label>
         <input type="text" id="set-gojuon" placeholder="YYYY-MM-DD">
       </div>
       <div class="settings-row">
@@ -134,6 +142,7 @@
     暦相場検証システム — 研究・教育目的のツールです。投資助言ではありません。
   </footer>
 
+  <script src="kotodama.js"></script>
   <script src="koyomi.js"></script>
   <script src="data.js"></script>
   <script src="stats.js"></script>
