@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>暦相場検証システム — FX × 暦 × 社会現象</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="fx-header">
+    <div>
+      <h1>暦相場検証システム</h1>
+      <div class="sub">FXチャート × 暦(節気・宿曜・干支・月齢・五十音) × 社会現象の相関検証</div>
+    </div>
+    <select id="pair-select" title="通貨ペア"></select>
+    <span id="data-info"></span>
+  </header>
+  <div id="source-banner"></div>
+
+  <div id="loading">為替データを読み込み中…(初回は数秒かかります)</div>
+
+  <div id="app" style="display:none">
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="tab-chart">チャート</button>
+      <button class="tab-btn" data-tab="tab-verify">暦検証</button>
+      <button class="tab-btn" data-tab="tab-similar">類似局面</button>
+      <button class="tab-btn" data-tab="tab-timeline">年表</button>
+      <button class="tab-btn" data-tab="tab-docs">解説・設定</button>
+    </nav>
+
+    <!-- タブ1: チャート -->
+    <section id="tab-chart" class="tab-panel active">
+      <div id="overlay-controls">
+        <label><input type="checkbox" id="ov-events" checked> 社会現象イベント</label>
+        <label><input type="checkbox" id="ov-moon" checked> 新月●・満月○</label>
+        <label><input type="checkbox" id="ov-sekki"> 二十四節気</label>
+        <label><input type="checkbox" id="ov-retro"> 水星逆行(帯)</label>
+        <label><input type="checkbox" id="ov-ichimoku" checked> 一目変化日</label>
+        <button id="btn-fullrange">全期間表示</button>
+      </div>
+      <div id="chart-wrap">
+        <canvas id="chart-canvas"></canvas>
+        <div id="chart-tooltip"></div>
+      </div>
+      <p class="mini" style="margin-top:6px">ドラッグ=移動 / ホイール=ズーム / ホバー=その日の暦を表示</p>
+      <div id="henkabi"></div>
+    </section>
+
+    <!-- タブ2: 暦検証 -->
+    <section id="tab-verify" class="tab-panel">
+      <div id="verify-tables"></div>
+    </section>
+
+    <!-- タブ3: 類似局面 -->
+    <section id="tab-similar" class="tab-panel">
+      <div class="similar-controls">
+        <label>照合する直近の期間:
+          <select id="similar-window">
+            <option value="30">30営業日</option>
+            <option value="60" selected>60営業日</option>
+            <option value="90">90営業日</option>
+            <option value="120">120営業日</option>
+          </select>
+        </label>
+        <button id="btn-similar">再検索</button>
+      </div>
+      <div id="similar-results"></div>
+    </section>
+
+    <!-- タブ4: 年表 -->
+    <section id="tab-timeline" class="tab-panel">
+      <div id="timeline-content"></div>
+    </section>
+
+    <!-- タブ5: 解説・設定 -->
+    <section id="tab-docs" class="tab-panel docs">
+      <div class="warn">
+        <b>免責事項</b> — 本システムは過去データと暦の相関を<b>検証</b>するための研究・教育用ツールです。
+        将来の値動きを予測・保証するものではなく、投資助言でもありません。
+        為替相場を確実に予測できるシステムは存在しません。売買の判断と結果はすべて利用者自身の責任です。
+      </div>
+
+      <h2>このシステムの考え方</h2>
+      <p>「暦と相場に相関がある」という仮説を<b>前提にせず</b>、過去約27年分の日次データ(欧州中央銀行の参照レート)に対して
+        暦のカテゴリごとの平均リターン・勝率を計算し、全期間平均との差が統計的に意味を持つか(z値・p値)を数字で確かめます。
+        相関が「あった」も「なかった」も等しく検証結果です。</p>
+      <ul>
+        <li><b>チャート</b> — 値動きに暦とイベントを重ねて目視確認。一目の時間論による変化日候補も投影。</li>
+        <li><b>暦検証</b> — 曜日 / 五十日 / 月相 / 二十四節気 / 二十七宿 / 日干五行(火水) / 数秘 / 水星逆行 / 五十音暦 / 一目基本数値日 の統計表。</li>
+        <li><b>類似局面</b> — 現在のチャート形状と相関の高い過去の局面を検索し、その後の値動きと当時の社会現象・暦を提示。</li>
+        <li><b>年表</b> — 主要な社会現象の当日の暦と相場反応を横断表示。</li>
+      </ul>
+
+      <h2>暦計算の定義(流派差に注意)</h2>
+      <ul>
+        <li><b>二十四節気</b> — 太陽黄経15°刻み(天文計算)。実際の暦要項と±1日以内で一致。</li>
+        <li><b>二十七宿(宿曜)</b> — 月の黄経からアヤナムシャ(歳差差、既定24°)を引いて13°20′で区分する天文学的定法。
+          旧暦の日付に宿を割り当てる伝統的な流派とはずれる場合があります。下の設定で調整できます。</li>
+        <li><b>火水の法則</b> — 日の十干の五行で判定(火=丙・丁の日、水=壬・癸の日)。日干支は1949-10-01=甲子を基準とした厳密計算。</li>
+        <li><b>言霊五十音暦</b> — 標準的な定義が存在しないため、古典五十音図50音を1日1音で巡らせる50日周期として実装。
+          基準日(既定 2000-02-04 立春)は下で変更できます。お使いの流派の定義に合わせて調整してください。</li>
+        <li><b>水星逆行</b> — ケプラー軌道要素からの計算。留の日は実際と±1日程度ずれることがあります。</li>
+        <li><b>一目均衡表の時間論</b> — 直近スイング(前後5本の極値)を1日目として基本数値 9,17,26,33,42,52,65,76 を投影。</li>
+      </ul>
+
+      <h2>統計を読むときの注意</h2>
+      <ul>
+        <li>多数のカテゴリを同時に検定しているため、偶然だけでも |z|≥2 は数個現れます(多重検定の問題)。</li>
+        <li>本物のアノマリーかを見分ける目安: ①複数の通貨ペアで同方向に出る ②期間を前半/後半に分けても再現する ③理屈(実需フロー等)が説明できる。</li>
+        <li>ECBレートは1日1本の参照値のため、日中の値動きや高値・安値は反映されません。</li>
+      </ul>
+
+      <h2>設定</h2>
+      <div class="settings-row">
+        <label>宿曜アヤナムシャ(°)</label>
+        <input type="number" id="set-ayanamsa" step="0.1" min="0" max="360">
+      </div>
+      <div class="settings-row">
+        <label>五十音暦の基準日</label>
+        <input type="text" id="set-gojuon" placeholder="YYYY-MM-DD">
+      </div>
+      <div class="settings-row">
+        <button id="btn-save-settings">保存して再計算</button>
+        <span id="settings-saved"></span>
+      </div>
+
+      <h2>データソース</h2>
+      <p>為替: <a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter API</a>(欧州中央銀行の日次参照レート、1999年〜)。
+        ブラウザから直接取得し、当日分は端末内(localStorage)にキャッシュします。サーバーは使いません。</p>
+    </section>
+  </div>
+
+  <footer class="fx-footer">
+    暦相場検証システム — 研究・教育目的のツールです。投資助言ではありません。
+  </footer>
+
+  <script src="koyomi.js"></script>
+  <script src="data.js"></script>
+  <script src="stats.js"></script>
+  <script src="events.js"></script>
+  <script src="chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
