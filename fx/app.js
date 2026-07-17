@@ -12,7 +12,7 @@
     rec: [],          // 暦レコード(dates と同順)
     returns: {},      // pair -> 対数リターン(bp)
     swings: {},       // pair -> スイング
-    settings: { ayanamsa: 24, gojuonAnchor: '2000-02-04' }
+    settings: { ayanamsa: 24 }
   };
 
   const $ = sel => document.querySelector(sel);
@@ -49,8 +49,7 @@
 
   function buildDerived() {
     const { dates, pairs } = state.data;
-    const anchorJ = K.jdnFromISO(state.settings.gojuonAnchor);
-    state.rec = dates.map(d => K.record(d, { ayanamsa: state.settings.ayanamsa, gojuonAnchor: anchorJ }));
+    state.rec = dates.map(d => K.record(d, { ayanamsa: state.settings.ayanamsa }));
     for (const p of Object.keys(pairs)) {
       state.returns[p] = S.logReturns(pairs[p]);
       state.swings[p] = S.findSwings(pairs[p], 5);
@@ -88,9 +87,9 @@
 
   /* ---------- 共通ヘルパ ---------- */
   function koyomiSummary(r) {
-    return `${r.weekday}曜 / ${r.moonPhase}(月齢${r.moonAge.toFixed(1)}) / ${r.sekkiTerm}` +
-      (r.sekkiDay ? `【${r.sekkiDay}入り】` : '') +
-      ` / ${r.shuku}宿 / ${r.ganzhi}(${r.element}${r.kasui ? '・' + r.kasui + 'の日' : ''})` +
+    return `${r.weekday}曜${r.rokuyo ? '・' + r.rokuyo : ''} / ${r.moonPhase}(月齢${r.moonAge.toFixed(1)}) / ${r.sekkiTerm}` +
+      (r.sekkiDay ? `【${r.sekkiDay}入り】` : '') + `・${r.kou}` +
+      ` / ${r.shuku}宿(${r.shukuMethod}) / ${r.ganzhi}(${r.element}${r.kasui ? '・' + r.kasui + 'の日' : ''})` +
       ` / 数秘${r.numerology} / 言霊「${r.kana}」(${r.rei})` +
       ` / 水星${r.retro ? '逆行' : '順行'}${r.gotobi ? ' / 五十日' : ''}`;
   }
@@ -191,7 +190,7 @@
       const offset = target - (dates.length - 1);  // 未来なら正
       if (offset > 0 && offset <= future.length) {
         const d = future[offset - 1];
-        const r = K.record(d, { ayanamsa: state.settings.ayanamsa, gojuonAnchor: K.jdnFromISO(state.settings.gojuonAnchor) });
+        const r = K.record(d, { ayanamsa: state.settings.ayanamsa });
         items.push(`<li><b>${d}</b> (基本数値${b}) — ${r.weekday}曜・${r.moonPhase}・${r.shuku}宿・${r.ganzhi}${r.kasui ? '・' + r.kasui + 'の日' : ''}・言霊「${r.kana}」(${r.rei})</li>`);
       }
     }
@@ -216,9 +215,10 @@
       { name: '陰陽(日干)', desc: '日干の陰陽', labels: rec.map(r => r.yinyang) },
       { name: '数秘(1〜9)', desc: '年月日の全桁和を1桁に還元', labels: rec.map(r => '数秘' + r.numerology) },
       { name: '水星の順逆', desc: '水星逆行期間 vs 順行期間', labels: rec.map(r => r.retro ? '逆行' : '順行') },
-      { name: '言霊五十連(靈別)', desc: '言霊一言法則の各音の靈の分類(正火・空中の水・水火・濁水・影の火・煇火・昇る水・水中の火・火中の水…) ※基準日は設定タブ', labels: rec.map(r => r.rei) },
+      { name: '言霊五十連(靈別)', desc: '言霊一言法則の各音の靈の分類。五十音暦は冬至点起点・1音=7日7時間12分(火水の会基準)で全期間に適用', labels: rec.map(r => r.rei) },
       { name: '言霊五十連(火水大別)', desc: '靈分類を火性・水性・火水性に大別(参考: アプリ側の分類であり原本の記載ではない)', labels: rec.map(r => r.kasui50), highlight: ['火性', '水性'] },
-      { name: '言霊五十連(音別・50音)', desc: 'ホに起こりマに終わる五十連の各音。1カテゴリあたりの標本数は少なめなので参考程度に', labels: rec.map(r => '「' + r.kana + '」') },
+      { name: '言霊五十連(音別・50音)', desc: '冬至点起点の五十連期(各約7.3日)。1カテゴリあたりの標本数は少なめなので参考程度に', labels: rec.map(r => '「' + r.kana + '」') },
+      { name: '六曜(2026旧暦年のみ・参考)', desc: '旧暦月+旧暦日から算出。データは2026旧暦年(2026/1/19〜2027/2/5)のみで標本数が少なく参考値', labels: rec.map(r => r.rokuyo) },
       {
         name: '一目均衡表・基本数値日', desc: 'スイングから9,17,26,33,42,52,65,76本目に当たる日(変動率も参照)',
         labels: S.ichimokuLabels(state.data.pairs[state.pair], state.swings[state.pair]), showAbs: true
@@ -344,7 +344,7 @@
         <td>${ev.date}</td>
         <td><span class="ev-chip" style="border-color:${cat.color}">${cat.label}</span></td>
         <td>${ev.title}</td>
-        <td class="mini">${r.moonPhase}・${r.sekkiTerm}・${r.shuku}宿・${r.ganzhi}${r.kasui ? '(' + r.kasui + ')' : ''}・数秘${r.numerology}・水星${r.retro ? '逆' : '順'}</td>
+        <td class="mini">${r.moonPhase}・${r.sekkiTerm}(${r.kou})・${r.shuku}宿・${r.ganzhi}${r.kasui ? '(' + r.kasui + ')' : ''}${r.rokuyo ? '・' + r.rokuyo : ''}・数秘${r.numerology}・言霊「${r.kana}」・水星${r.retro ? '逆' : '順'}</td>
         <td class="num ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</td></tr>`;
     }
     html += '</tbody></table>';
@@ -353,11 +353,13 @@
 
   /* ---------- タブ5: 言霊法則 ---------- */
   function renderKotodamaTab() {
-    const anchorJ = K.jdnFromISO(state.settings.gojuonAnchor);
-    const todayIdx = K.mod(K.jdnFromISO(new Date().toISOString().slice(0, 10)) - anchorJ, 50);
+    const todayISO = new Date().toISOString().slice(0, 10);
+    const g = K.gojuon(K.jdnFromISO(todayISO), +todayISO.slice(0, 4));
+    const todayIdx = g.idx;
     let html = `<p class="note">言霊一言法則(稲荷古伝・五十連)の各音の定義。定義行は原本の記載を<b>一字一句そのまま</b>収録しています(要約・改変なし)。
-      並び順も原本どおり、ホに起こりマに終わる五十連の順です。この順を1日1音・50日周期の暦として用いています(基準日=ホ、設定タブで変更可)。
-      本日の音は <b>「${window.Kotodama.SOUNDS[todayIdx].label}」</b> です。</p>
+      並び順も原本どおり、ホに起こりマに終わる五十連の順です。<br>
+      五十音暦は<b>冬至点起点</b>(火水の会基準暦典/TK_ANCHOR_03): 冬至点=ホとし、1音=7日7時間12分(365日÷50音)で進み、第50音マは次の冬至点まで。
+      本日の音は <b>「${window.Kotodama.SOUNDS[todayIdx].label}」(第${todayIdx + 1}音)</b> です。</p>
       <table class="stat-table kotodama"><thead><tr>
       <th>順</th><th>音</th><th>靈</th><th>定義(原文)</th></tr></thead><tbody>`;
     window.Kotodama.SOUNDS.forEach((s, i) => {
@@ -373,11 +375,8 @@
   /* ---------- タブ6: 解説・設定 ---------- */
   function renderDocsTab() {
     $('#set-ayanamsa').value = state.settings.ayanamsa;
-    $('#set-gojuon').value = state.settings.gojuonAnchor;
     $('#btn-save-settings').onclick = () => {
       state.settings.ayanamsa = +$('#set-ayanamsa').value || 24;
-      const v = $('#set-gojuon').value;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(v)) state.settings.gojuonAnchor = v;
       saveSettings();
       buildDerived();
       renderChartTab(); renderVerifyTab(); renderSimilarTab(); renderTimelineTab(); renderKotodamaTab();
