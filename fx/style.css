@@ -120,6 +120,10 @@ nav.tabs {
 /* 年表 */
 .timeline td { vertical-align: top; }
 
+/* 言霊法則 */
+.kotodama td { vertical-align: top; }
+.kotodama td.def { line-height: 1.8; }
+
 /* 解説 */
 .docs h2 { font-size: 16px; margin: 22px 0 8px; color: #eef1f6; }
 .docs p, .docs li { color: #a8b2c4; font-size: 13.5px; }
